@@ -1,0 +1,89 @@
+﻿@page "/allUsers"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Blazor.Authentication.Models
+@using System.Net.Http.Headers
+
+class{
+ prop class
+
+}
+
+<AuthorizeView>
+    <Authorized>
+        <h3>You can see all users in there</h3>
+        @if (_userDtos?.Count is not 0)
+        {
+            <table>
+                <tr>
+                    <th>#</th>
+                    <th>User Id</th>
+                    <th>Firstname</th>
+                    <th>Lastname</th>
+                    <th>Username</th>
+                    <th>Created at</th>
+                    <th>First Blog name</th>
+                    <th>Get User</th>
+                    <th>Update User</th>
+                    <th>Delete User</th>@*
+                    <th> The User Blogs</th>*@
+                </tr>
+                @{
+                    int count = 0;
+                }
+
+                @foreach (var user in _userDtos)
+                {
+                    count++;
+                    <tr>
+                        <td>@count</td>
+                        <td>@user.Id</td>
+                        <td>@user.Firstname</td>
+                        <td>@user.Lastname</td>
+                        <td>@user.Username</td>
+                        <td>@user.CreatedAt.ToString("M/d/yy")</td>
+                        <td><a class="btn btn-primary" href="/getUser/@user.Id">Get User</a></td>
+                        <td><a class="btn btn-secondary" href="/updateUser/@user.Id">Update User</a></td>
+                        <td><a class="btn btn-danger" href="/deleteUser/@user.Id">Delete User</a></td>
+                        @*<td><a href="/myBlogs/{@user.Id}" class="btn btn-success">My Blogs</a></td>*@
+                    </tr>
+                }
+            </table>
+        }
+
+
+        @code {
+            List<UserDto>? _userDtos = new();
+            private string? token;
+            protected override async Task OnInitializedAsync()
+            {
+                token = await StorageService.GetItemAsync<string>("jwt-token");
+                Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                _userDtos = await Client.GetFromJsonAsync<List<UserDto>>("https://localhost:7105/api/Users");
+            }
+
+        }
+
+    </Authorized>
+</AuthorizeView>
+
+
+
+<style>
+    table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+
+    tr:nth-child(even) {
+        background-color: #dddddd;
+    }
+</style>

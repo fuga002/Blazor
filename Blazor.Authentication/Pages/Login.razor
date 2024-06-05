@@ -1,0 +1,60 @@
+﻿@page "/login"
+@using Blazor.Authentication.Models
+@using Blazor.Authentication.Services
+@using Blazored.LocalStorage
+<h3>Login</h3>
+
+
+<div class="contanier">
+
+    <EditForm Model="LoginModel" OnValidSubmit="LoginClicked">
+        <DataAnnotationsValidator/>
+        <ValidationSummary/>
+        <div class="card">
+            <div class="card-body">
+                <div class="form-control">
+                    <label>Username</label>
+                    <InputText @bind-Value="LoginModel.UserName"/>
+                </div>
+                <div class="form-control">
+                    <label>Password</label>
+                    <InputText @bind-Value="LoginModel.Password"/>
+                </div>
+            </div>
+        </div>
+        <div class="form-control">
+            <button class="btn btn-primary" type="submit">Login</button>
+        </div>
+    </EditForm>
+</div>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <ErrorDisplay ErrorMessage="@errorMessage"></ErrorDisplay>
+}
+
+@code
+{
+    public LoginUserModel LoginModel { get; set; } = new();
+
+    private string? errorMessage;
+    bool check;
+
+    private async Task LoginClicked()
+    {
+        var response = await Client.PostAsJsonAsync("https://localhost:7105/api/Users/login", LoginModel);
+        if (response.IsSuccessStatusCode)
+        {
+            var token = await response.Content.ReadAsStringAsync();
+            await StorageService.SetItemAsync("jwt-token", token); 
+            var state = (CustomAuthenticationStateProvider)StateProvider;
+            state?.GetAuthenticationStateAsync();
+            state.UpdateState();
+
+            NavigationManager.NavigateTo("/fetchdata", forceLoad: true);
+        }
+        
+    }
+
+    
+}
